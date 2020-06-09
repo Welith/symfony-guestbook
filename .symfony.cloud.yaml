@@ -33,7 +33,9 @@ mounts:
   "/var": { source: local, source_path: var }
 
 hooks:
-  build: |
+  build:
+    php-ext-install redis
+    |
     set -x -e
     php-ext-install redis
     curl -s https://get.symfony.com/cloud/configurator | (>&2 bash)
