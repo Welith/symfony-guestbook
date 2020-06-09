@@ -40,6 +40,9 @@ hooks:
 
     (>&2 symfony-build)
 
+    php-ext-install redis version
+
+
   deploy: |
     set -x -e
 
