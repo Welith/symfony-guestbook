@@ -35,15 +35,11 @@ mounts:
 hooks:
   build: |
     set -x -e
-
+    php-ext-install redis
     curl -s https://get.symfony.com/cloud/configurator | (>&2 bash)
-
     (>&2 symfony-build)
-
-    php-ext-install redis 5
 
 
   deploy: |
     set -x -e
-
     (>&2 symfony-deploy)
