@@ -8,6 +8,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @ORM\Entity(repositoryClass=CommentRepository::class)
+ * @ORM\HasLifecycleCallbacks()
  */
 class Comment
 {
@@ -140,7 +141,7 @@ class Comment
     /**
      * @ORM\PrePersist()
      */
-    public function setCreateAtValue()
+    public function setCreatedAtValue()
     {
         $this->createdAt = new \DateTime();
     }
