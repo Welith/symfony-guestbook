@@ -10,3 +10,4 @@
 ###< symfony/framework-bundle ###
 ### PHP STORM idea###
 /.idea
+/public/uploads
