@@ -292,10 +292,16 @@
     "symfony/orm-pack": {
         "version": "v1.0.8"
     },
+    "symfony/polyfill-intl-grapheme": {
+        "version": "v1.17.0"
+    },
     "symfony/polyfill-intl-icu": {
         "version": "v1.17.0"
     },
     "symfony/polyfill-intl-idn": {
+        "version": "v1.17.0"
+    },
+    "symfony/polyfill-intl-normalizer": {
         "version": "v1.17.0"
     },
     "symfony/polyfill-mbstring": {
@@ -355,6 +361,9 @@
         "version": "v2.1.2"
     },
     "symfony/stopwatch": {
+        "version": "v5.0.9"
+    },
+    "symfony/string": {
         "version": "v5.0.9"
     },
     "symfony/translation": {
