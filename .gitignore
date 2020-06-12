@@ -11,3 +11,9 @@
 ### PHP STORM idea###
 /.idea
 /public/uploads
+
+###> symfony/phpunit-bridge ###
+.phpunit
+.phpunit.result.cache
+/phpunit.xml
+###< symfony/phpunit-bridge ###
