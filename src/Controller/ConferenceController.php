@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Comment;
 use App\Entity\Conference;
 use App\Form\CommentFormType;
+use App\Message\CommentMessage;
 use App\Repository\CommentRepository;
 use App\SpamChecker;
 use Doctrine\ORM\EntityManagerInterface;
@@ -13,6 +14,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Twig\Environment;
 use Twig\Error\LoaderError;
@@ -28,15 +30,18 @@ class ConferenceController extends AbstractController
 
     private $entityManager;
 
+    private $bus;
+
     /**
      * ConferenceController constructor.
      * @param Environment $twig
      * @param EntityManagerInterface $entityManager
      */
-    public function __construct(Environment $twig, EntityManagerInterface $entityManager)
+    public function __construct(Environment $twig, EntityManagerInterface $entityManager, MessageBusInterface $bus)
     {
         $this->twig = $twig;
         $this->entityManager = $entityManager;
+        $this->bus = $bus;
     }
 
     /**
@@ -64,7 +69,7 @@ class ConferenceController extends AbstractController
      * @throws SyntaxError
      */
     public function show(Request $request, Conference $conference, CommentRepository $commentRepository,
-                         string $photoDir, SpamChecker $spamChecker)
+                         string $photoDir)
     {
         $comment = new Comment();
         $form = $this->createForm(CommentFormType::class, $comment);
@@ -77,21 +82,19 @@ class ConferenceController extends AbstractController
                     $photo->move($photoDir, $filename);
                 } catch (FileException $e){
                     //cant upload
+                    throw new FileException("Cannot upload given file!");
                 }
                 $comment->setPhotoFilename($filename);
             }
             $this->entityManager->persist($comment);
-            dump($request->getClientIp());
+            $this->entityManager->flush();
             $context = [
                 'user_ip' => $request->getClientIp(),
                 'user_agent' => $request->headers->get('user-agent'),
                 'referrer' => $request->headers->get('referer'),
                 'permalink' => $request->getUri(),
             ];
-            if($spamChecker->getSpamScore($comment, $context) === 1){
-                throw new \RuntimeException('SPAM!');
-            }
-            $this->entityManager->flush();
+            $this->bus->dispatch(new CommentMessage($comment->getId(), $context));
 
             return $this->redirectToRoute('conference', ['slug' => $conference->getSlug()]);
         }

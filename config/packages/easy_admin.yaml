@@ -17,6 +17,8 @@ easy_admin:
           - { property: 'email', type: 'email' }
           - { property: 'createdAt', type: 'datetime' }
           - { property: 'photoFileName', type: 'image', 'base_path': "/uploads/photos", label: 'Photo' }
+          - state
+          - { property: 'createdAt', type: 'datetime'}
         sort: ['createdAt', 'ASC']
         filters: ['conference']
       edit:
@@ -24,5 +26,6 @@ easy_admin:
           - { property: 'conference' }
           - { property: 'createdAt', type: datetime, type_options: {attr: { readonly: true } } }
           - 'author'
+          - {property: 'state'}
           - { property: 'email', type: 'email' }
           - text
