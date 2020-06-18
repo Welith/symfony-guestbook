@@ -4,6 +4,7 @@
 namespace App\MessageHandler;
 
 
+use App\ImageResizer;
 use App\Message\CommentMessage;
 use App\Repository\CommentRepository;
 use App\SpamChecker;
@@ -25,13 +26,18 @@ class CommentMessageHandler implements MessageHandlerInterface
     private $logger;
     private $mailer;
     private $adminEmail;
+    private $imageResizer;
+    private $photoDir;
 
     public function __construct(EntityManagerInterface $entityManager,
                                 SpamChecker $spamChecker,
                                 CommentRepository $commentRepository,
                                 MessageBusInterface $bus, WorkflowInterface $commentStateMachine,
-                                LoggerInterface $logger = null,
-                                MailerInterface $mailer, string $adminEmail)
+                                MailerInterface $mailer,
+                                string $adminEmail,
+                                ImageResizer $imageResizer,
+                                string $photoDir,
+                                LoggerInterface $logger = null)
     {
         $this->entityManager = $entityManager;
         $this->spamChecker = $spamChecker;
@@ -41,6 +47,8 @@ class CommentMessageHandler implements MessageHandlerInterface
         $this->logger = $logger;
         $this->mailer = $mailer;
         $this->adminEmail = $adminEmail;
+        $this->imageResizer = $imageResizer;
+        $this->photoDir = $photoDir;
     }
 
     public function __invoke(CommentMessage $message)
@@ -50,12 +58,7 @@ class CommentMessageHandler implements MessageHandlerInterface
             return;
         }
 
-//        if (1 === $this->spamChecker->getSpamScore($comment, $message->getContext())) {
-//            $comment->setState('spam');
-//        } else {
-//            $comment->setState('published');
-//        }
-        if ($this->workflow->can($comment, 'might_be_spam')){
+        if ($this->workflow->can($comment, 'might_be_spam')) {
             $score = $this->spamChecker->getSpamScore($comment, $message->getContext());
             $transition = 'might_be_spam';
             $this->workflow->apply($comment, $transition);
@@ -72,6 +75,12 @@ class CommentMessageHandler implements MessageHandlerInterface
                 ->from($this->adminEmail)
                 ->to($this->adminEmail)
                 ->context(['comment' => $comment]));
+        } elseif ($this->workflow->can($comment, 'optimize')) {
+            if ($comment->getPhotoFilename()) {
+                $this->imageResizer->resize($this->photoDir.'/'.$comment->getPhotoFilename());
+            }
+            $this->workflow->apply($comment, 'optimize');
+            $this->entityManager->flush();
         } elseif ($this->logger) {
             $this->logger->debug('Dropping comment message', [
                 'comment' => $comment->getId(),
