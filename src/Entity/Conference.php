@@ -35,6 +35,7 @@ class Conference
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Groups({"conference:list", "conference:item"})
      */
     private $city;
 
