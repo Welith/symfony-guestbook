@@ -2,16 +2,25 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Core\Annotation\ApiResource;
 use App\Repository\ConferenceRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\String\Slugger\SluggerInterface;
 
 /**
  * @ORM\Entity(repositoryClass=ConferenceRepository::class)
  * @UniqueEntity("slug")
+ * @ApiResource(
+ *     collectionOperations={"get"={"normalization_context"={"groups"="conference:list"}}},
+ *
+ *     itemOperations={"get"={"normalization_context"={"groups"="conference:item"}}},
+ *     order={"year"="DESC", "city"="ASC"},
+ *     paginationEnabled=false
+ * )
  */
 class Conference
 {
@@ -19,6 +28,8 @@ class Conference
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
+     *
+     * @Groups({"conference:list", "conference:item"})
      */
     private $id;
 
@@ -29,11 +40,14 @@ class Conference
 
     /**
      * @ORM\Column(type="string")
+     *
+     * @Groups({"conference:list", "conference:item"})
      */
     private $year;
 
     /**
      * @ORM\Column(type="boolean")
+     * @Groups({"conference:list", "conference:item"})
      */
     private $isInternational;
 
@@ -44,6 +58,7 @@ class Conference
 
     /**
      * @ORM\Column(type="string", length=255, unique=true)
+     * @Groups({"conference:list", "conference:item"})
      */
     private $slug;
 
@@ -144,7 +159,7 @@ class Conference
     public function computeSlug(SluggerInterface $slugger)
     {
         if (!$this->slug || '-' === $this->slug) {
-            $this->slug = (string) $slugger->slug((string) $this)->lower();
+            $this->slug = (string)$slugger->slug((string)$this)->lower();
         }
     }
 }
